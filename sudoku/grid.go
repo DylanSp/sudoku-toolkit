@@ -49,8 +49,9 @@ func (g *Grid) cellAt(row uint, col uint) Cell {
 }
 
 // TODO - this is currently the only way to set values in a grid; probably want other constructor(s), may not want this direct setter
-func (g *Grid) SetCellAt(row uint, col uint, newCell Cell) {
-	if newCell != nil && (*newCell < 1 || *newCell > g.maxElement()) {
+// TODO - may also want a method to clear a cell (set it to nil)
+func (g *Grid) SetCellToElement(row uint, col uint, element int) {
+	if element < 1 || element > g.maxElement() {
 		// TODO - better error handling?
 		panic("tried to set cell value outside the valid range")
 	}
@@ -58,7 +59,7 @@ func (g *Grid) SetCellAt(row uint, col uint, newCell Cell) {
 	// could inline these into a single line, but gofmt's arithmetic formatting makes the inlined version less clear
 	rowBaseIndex := row * g.sideLength()
 	index := rowBaseIndex + col
-	g.cells[index] = newCell
+	g.cells[index] = &element
 }
 
 func (g *Grid) rows() [][]Cell {
