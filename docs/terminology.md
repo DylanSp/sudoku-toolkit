@@ -9,6 +9,7 @@ Specific terminology used in this codebase.
 * `Row` - a single row of cells across the entire Grid.
 * `Column` - a single columns across the entire Grid.
 * `Box` - a square sub-grid - for an NxN Grid, the box has N total Cells.
+* `House` - a Row, Column, or Box.
 * `Hints`/`Givens` - the Cells that start filled in a Puzzle.
 
 ## Nonstandard, codebase-specific terminology
