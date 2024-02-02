@@ -7,3 +7,4 @@ Links to resources for programming with Sudoku.
 * Determining difficulty of Sudoku puzzles:
   * [Puzzling.SE discussion](https://puzzling.stackexchange.com/questions/29/what-are-the-criteria-for-determining-the-difficulty-of-sudoku-puzzle)
   * [Academic paper](https://arxiv.org/abs/1403.7373)
+* [Hacker News post on a browser Sudoku implementation](https://news.ycombinator.com/item?id=38913220) - potentially useful for inspiration, especially looking at the various critiques brought up on HN.
