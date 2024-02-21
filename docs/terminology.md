@@ -11,6 +11,7 @@ Specific terminology used in this codebase.
 * `Box` - a square sub-grid - for an NxN Grid, the box has N total Cells.
 * `House` - a Row, Column, or Box.
 * `Hints`/`Givens` - the Cells that start filled in a Puzzle.
+* `Peers` - Cells in the same House as another Cell (usage: the Peers of cell C are all cells that share a Row, Column, or Box with C)
 
 ## Nonstandard, codebase-specific terminology
 
