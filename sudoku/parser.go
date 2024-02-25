@@ -2,6 +2,7 @@ package sudoku
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 )
 
@@ -52,5 +53,14 @@ func readFileLines(filename string) ([]string, error) {
 }
 
 func parseSingleGrid(str string) (Grid, error) {
+	switch len(str) {
+	case 81:
+		return parseBaseSize3Grid(str)
+	default:
+		panic(fmt.Sprintf("Unrecognized grid size: %v", len(str)))
+	}
+}
+
+func parseBaseSize3Grid(str string) (Grid, error) {
 	panic("not yet implemented")
 }
