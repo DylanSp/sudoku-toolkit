@@ -4,9 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 )
-
-// TODO - either hardcode these to base size 3 (9x9) and document that, or make them capable of handling different base sizes
 
 func LoadGridsFromFile(filename string) ([]Grid, error) {
 	lines, err := readFileLines(filename)
@@ -17,11 +16,7 @@ func LoadGridsFromFile(filename string) ([]Grid, error) {
 	grids := []Grid{}
 
 	for _, line := range lines {
-		grid, err := parseSingleGrid(line)
-		if err != nil {
-			return nil, err
-		}
-
+		grid := parseSingleGrid(line)
 		grids = append(grids, grid)
 	}
 
@@ -52,15 +47,36 @@ func readFileLines(filename string) ([]string, error) {
 	return lines, nil
 }
 
-func parseSingleGrid(str string) (Grid, error) {
+func parseSingleGrid(str string) Grid {
 	switch len(str) {
+	case 16:
+		panic("Parsing not yet implemented for 4x4 puzzles")
 	case 81:
 		return parseBaseSize3Grid(str)
+	case 256:
+		panic("Parsing not yet implemented for 16x16 puzzles")
+	case 625:
+		panic("Parsing not yet implemented for 25x25 puzzles")
+	case 1296:
+		panic("Parsing not yet implemented for 36x36 puzzles")
 	default:
 		panic(fmt.Sprintf("Unrecognized grid size: %v", len(str)))
 	}
 }
 
-func parseBaseSize3Grid(str string) (Grid, error) {
-	panic("not yet implemented")
+func parseBaseSize3Grid(str string) Grid {
+	grid := EmptyGrid(3)
+
+	for pos, ch := range str {
+		switch ch {
+		case '1', '2', '3', '4', '5', '6', '7', '8', '9':
+			intValue, _ := strconv.Atoi(string(ch)) // ignore error, conversion should always be valid
+			grid.cells[pos] = &intValue
+		case '.':
+			grid.cells[pos] = nil
+			// no default case - ignore all other runes
+		}
+	}
+
+	return grid
 }
