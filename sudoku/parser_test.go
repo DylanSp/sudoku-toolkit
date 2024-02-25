@@ -38,3 +38,27 @@ func testLoading9x9GridsFromFile(t *testing.T, filename string) {
 		assert.EqualValues(t, 3, grid.baseSize)
 	}
 }
+
+// TODO - uses non-exported functions (readFileLines(), parseSingleGrid()), but testing this round-trip property is easy and useful
+// TODO - use fuzz testing for this?
+func TestRoundTripFromFile(t *testing.T) {
+	// TODO - figure out a less brittle way get the path to the example files? maybe copy them to a subfolder in this directory?
+	currentWorkingDir, err := os.Getwd()
+	assert.NoError(t, err)
+
+	folderWithExamples := filepath.Join(currentWorkingDir, "..", "examples", "9x9")
+	exampleFiles := []string{
+		"easy50.txt",
+		"hard95.txt",
+		"hardest.txt",
+	}
+	for _, exampleFile := range exampleFiles {
+		filename := filepath.Join(folderWithExamples, exampleFile)
+		lines, err := readFileLines(filename)
+		assert.NoError(t, err)
+		for _, line := range lines {
+			grid := parseSingleGrid(line)
+			assert.EqualValues(t, line, grid.String())
+		}
+	}
+}

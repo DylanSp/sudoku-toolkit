@@ -1,7 +1,10 @@
 package sudoku
 
 import (
+	"fmt"
 	"slices"
+	"strconv"
+	"strings"
 
 	"github.com/samber/lo"
 )
@@ -196,4 +199,22 @@ func (g *Grid) IsValidSolution() bool {
 	}
 
 	return true
+}
+
+func (g *Grid) String() string {
+	var b strings.Builder
+
+	// TODO - generalize for different base sizes
+	for _, cell := range g.cells {
+		if cell == nil {
+			b.WriteString(".")
+			continue
+		} else if *cell >= 1 && *cell <= 9 {
+			b.WriteString(strconv.Itoa(*cell))
+		} else {
+			panic(fmt.Sprintf("don't know to print cell value %v", *cell))
+		}
+	}
+
+	return b.String()
 }
