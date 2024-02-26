@@ -1,6 +1,8 @@
 package sudoku
 
-import "github.com/DylanSp/sudoku-toolkit/utils"
+import (
+	"github.com/DylanSp/sudoku-toolkit/utils"
+)
 
 type puzzleInProgress struct {
 	knownValues Grid
