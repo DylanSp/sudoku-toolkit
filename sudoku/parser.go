@@ -50,7 +50,7 @@ func readFileLines(filename string) ([]string, error) {
 func parseSingleGrid(str string) Grid {
 	switch len(str) {
 	case 16:
-		panic("Parsing not yet implemented for 4x4 puzzles")
+		return parseBaseSize2Grid(str)
 	case 81:
 		return parseBaseSize3Grid(str)
 	case 256:
@@ -64,6 +64,23 @@ func parseSingleGrid(str string) Grid {
 	}
 }
 
+func parseBaseSize2Grid(str string) Grid {
+	grid := EmptyGrid(2)
+
+	for pos, ch := range str {
+		switch ch {
+		case '1', '2', '3', '4':
+			intValue, _ := strconv.Atoi(string(ch)) // ignore error, conversion should always be valid
+			grid.cells[pos] = &intValue
+		case '.':
+			grid.cells[pos] = nil
+		}
+		// no default case - ignore all other runes
+	}
+
+	return grid
+}
+
 func parseBaseSize3Grid(str string) Grid {
 	grid := EmptyGrid(3)
 
@@ -74,8 +91,8 @@ func parseBaseSize3Grid(str string) Grid {
 			grid.cells[pos] = &intValue
 		case '.':
 			grid.cells[pos] = nil
-			// no default case - ignore all other runes
 		}
+		// no default case - ignore all other runes
 	}
 
 	return grid
