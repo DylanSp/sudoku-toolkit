@@ -15,7 +15,9 @@ func main() {
 		panic(err)
 	}
 
-	filename := filepath.Join(currentWorkingDir, "examples", "4x4", "filledGrid.txt")
+	// filename := filepath.Join(currentWorkingDir, "examples", "4x4", "filledGrid.txt")
+	filename := filepath.Join(currentWorkingDir, "examples", "4x4", "oneCellEmpty.txt")
+	// filename := filepath.Join(currentWorkingDir, "examples", "4x4", "simplePuzzle.txt")
 
 	grids, err := sudoku.LoadGridsFromFile(filename)
 	if err != nil {
@@ -25,7 +27,7 @@ func main() {
 	}
 
 	for _, grid := range grids {
-		solvedGrid := sudoku.SolveWithBacktracking(grid)
+		solvedGrid := sudoku.SolveWithBasicStrategies(grid)
 		fmt.Println(solvedGrid)
 	}
 }

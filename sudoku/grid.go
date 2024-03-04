@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/DylanSp/sudoku-toolkit/utils"
 	"github.com/samber/lo"
 )
 
@@ -31,6 +32,110 @@ func (c *Cell) String() string {
 	}
 
 	panic(fmt.Sprintf("don't know to print cell value %v", *c.value))
+}
+
+func (c *Cell) AllPeers() utils.Set[*Cell] {
+	peers := utils.Set[*Cell]{}
+
+	indexes := c.allPeerIndexes()
+	for _, peerIndex := range indexes.Elements() {
+		peer := c.containingGrid.cells[peerIndex]
+		peers.Add(&peer)
+	}
+
+	return peers
+}
+
+func (c *Cell) allPeerIndexes() utils.Set[uint] {
+	allPeerIndexes := utils.Set[uint]{}
+
+	// we can't inline these into "range c.rowPeerIndexes().Elements()" because .Elements() has a pointer receiver,
+	// so we need an intermediate variable for each group of indexes
+
+	// TODO - potentially combine the loops in c.rowPeerIndexes() and c.colPeerIndexes()?
+	// we can use a divmod-like function: div, mod := i / sideLength, i % sideLength
+
+	rowPeerIndexes := c.rowPeerIndexes()
+	for _, peerIndex := range rowPeerIndexes.Elements() {
+		allPeerIndexes.Add(peerIndex)
+	}
+
+	colPeerIndexes := c.colPeerIndexes()
+	for _, peerIndex := range colPeerIndexes.Elements() {
+		allPeerIndexes.Add(peerIndex)
+	}
+
+	boxPeerIndexes := c.boxPeerIndexes()
+	for _, peerIndex := range boxPeerIndexes.Elements() {
+		allPeerIndexes.Add(peerIndex)
+	}
+
+	return allPeerIndexes
+}
+
+func (c *Cell) rowPeerIndexes() utils.Set[uint] {
+	peerIndexes := utils.Set[uint]{}
+
+	for i := range c.containingGrid.cells {
+		// c isn't its own peer
+		if i == int(c.index) {
+			continue
+		}
+
+		// integer division, rounding down
+		if i/int(c.containingGrid.sideLength()) == int(c.index)/int(c.containingGrid.sideLength()) {
+			peerIndexes.Add(uint(i))
+		}
+	}
+
+	return peerIndexes
+}
+
+func (c *Cell) colPeerIndexes() utils.Set[uint] {
+	peerIndexes := utils.Set[uint]{}
+
+	for i := range c.containingGrid.cells {
+		// c isn't its own peer
+		if i == int(c.index) {
+			continue
+		}
+
+		if i%int(c.containingGrid.sideLength()) == int(c.index)%int(c.containingGrid.sideLength()) {
+			peerIndexes.Add(uint(i))
+		}
+	}
+
+	return peerIndexes
+}
+
+func (c *Cell) boxPeerIndexes() utils.Set[uint] {
+	// unsure if there's an easy arithmetic way to find this
+	// instead, loop through all boxes in the grid, find which one contains c, then loop through its contents
+
+	peerIndexes := utils.Set[uint]{}
+
+	var boxContainingC []Cell
+
+	// should always find and assign a value for boxContainingC
+	for _, box := range c.containingGrid.boxes() {
+		if slices.ContainsFunc[[]Cell, Cell](box, func(cell Cell) bool {
+			return cell.index == c.index
+		}) {
+			boxContainingC = box
+			break
+		}
+	}
+
+	for _, cellInBox := range boxContainingC {
+		// c isn't its own peer
+		if cellInBox.index == c.index {
+			continue
+		}
+
+		peerIndexes.Add(cellInBox.index)
+	}
+
+	return peerIndexes
 }
 
 type Grid struct {

@@ -13,17 +13,38 @@ type puzzleInProgress struct {
 	possibleValues []utils.Set[int]
 }
 
-func SolveWithBacktracking(grid Grid) Grid {
+func SolveWithBasicStrategies(grid Grid) Grid {
 	if grid.IsValidSolution() {
 		return grid
 	}
 
 	puzzle := newPuzzleInProgress(grid)
 
-	panic("not yet implemented")
+	// apply basic rules and assignments as long as possible, until either the grid is completed or no progress can be made
+	for {
+		anyValuesEliminated := puzzle.eliminatePossibilitiesByRules()
+		anyValuesAssigned := puzzle.assignValuesForSinglePossibilities()
 
-	// satisfy compiler - will probably not be used
-	return puzzle.knownValues
+		if puzzle.knownValues.IsValidSolution() {
+			return puzzle.knownValues
+		}
+
+		// no progress made and puzzle is still incomplete
+		if !anyValuesEliminated && !anyValuesAssigned {
+			// TODO - more graceful error handling
+			panic("Unable to solve puzzle with basic strategies")
+		}
+	}
+}
+
+func SolveWithBacktracking(grid Grid) Grid {
+	// if grid.IsValidSolution() {
+	// 	return grid
+	// }
+
+	// puzzle := newPuzzleInProgress(grid)
+
+	panic("not yet implemented")
 }
 
 func newPuzzleInProgress(grid Grid) puzzleInProgress {
@@ -54,4 +75,63 @@ func allPossibilities(baseSize uint) utils.Set[int] {
 	}
 
 	return possibilities
+}
+
+// go through all empty cells; if there's only one possibile value, set that cell's value to that possibility
+// returns true iff at least one value was assigned
+func (puzzle *puzzleInProgress) assignValuesForSinglePossibilities() bool {
+	valueAssigned := false
+
+	for i, cell := range puzzle.knownValues.cells {
+		if cell.isEmpty() {
+			possibilitiesForCell := puzzle.possibleValues[i]
+			if possibilitiesForCell.Size() == 1 {
+				possibility := possibilitiesForCell.Elements()[0]
+				cell.value = &possibility
+				valueAssigned = true
+			}
+		}
+	}
+
+	return valueAssigned
+}
+
+// applies the basic rules of Sudoku to eliminate all possibilities ruled out by currently known values
+// returns true iff at least one possibility was eliminated
+func (puzzle *puzzleInProgress) eliminatePossibilitiesByRules() bool {
+	eliminationsMadeInMethod := false // did this method as a whole eliminate any possibilities?
+
+	eliminationsMadeInLoop := false // did a specific iteration of the loop eliminate any possibilities?
+
+	// continue looping until we can no longer eliminate any possibilities
+	for {
+		for i, cell := range puzzle.knownValues.cells {
+			// skip cells that already have values
+			if !cell.isEmpty() {
+				continue
+			}
+
+			possibilitiesForCell := &puzzle.possibleValues[i]
+
+			peerSet := cell.AllPeers()
+			peers := peerSet.Elements()
+
+			// TODO - nested loop here - possible source of inefficiency?
+			for _, peer := range peers {
+				if peer != nil && !peer.isEmpty() {
+					possibilitiesForCell.Delete(*peer.value)
+					eliminationsMadeInLoop = true
+					eliminationsMadeInMethod = true
+				}
+			}
+		}
+
+		if !eliminationsMadeInLoop {
+			break
+		}
+		eliminationsMadeInLoop = false // reset for next iteration
+	}
+
+	return eliminationsMadeInMethod
+
 }
