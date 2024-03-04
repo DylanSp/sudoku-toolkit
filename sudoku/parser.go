@@ -71,9 +71,17 @@ func parseBaseSize2Grid(str string) Grid {
 		switch ch {
 		case '1', '2', '3', '4':
 			intValue, _ := strconv.Atoi(string(ch)) // ignore error, conversion should always be valid
-			grid.cells[pos] = &intValue
+			grid.cells[pos] = Cell{
+				index:          uint(pos),
+				containingGrid: &grid,
+				value:          &intValue,
+			}
 		case '.':
-			grid.cells[pos] = nil
+			grid.cells[pos] = Cell{
+				index:          uint(pos),
+				containingGrid: &grid,
+				value:          nil,
+			}
 		}
 		// no default case - ignore all other runes
 	}
@@ -88,9 +96,17 @@ func parseBaseSize3Grid(str string) Grid {
 		switch ch {
 		case '1', '2', '3', '4', '5', '6', '7', '8', '9':
 			intValue, _ := strconv.Atoi(string(ch)) // ignore error, conversion should always be valid
-			grid.cells[pos] = &intValue
+			grid.cells[pos] = Cell{
+				index:          uint(pos),
+				containingGrid: &grid,
+				value:          &intValue,
+			}
 		case '.':
-			grid.cells[pos] = nil
+			grid.cells[pos] = Cell{
+				index:          uint(pos),
+				containingGrid: &grid,
+				value:          nil,
+			}
 		}
 		// no default case - ignore all other runes
 	}

@@ -9,9 +9,29 @@ import (
 	"github.com/samber/lo"
 )
 
-// nil == no value
-// naive representation; may replace later
-type Cell *int
+type Cell struct {
+	index          uint  // index of this cell in containingGrid.cells
+	containingGrid *Grid // pointer to act as a reference, avoiding infinite loops; should never be nil
+	value          *int  // nil == no value
+}
+
+// utility method for clarity
+func (c *Cell) isEmpty() bool {
+	return c.value == nil
+}
+
+func (c *Cell) String() string {
+	if c.isEmpty() {
+		return "."
+	}
+
+	// TODO - generalize for different base sizes/ranges of possible values
+	if *c.value >= 1 && *c.value <= 9 {
+		return strconv.Itoa(*c.value)
+	}
+
+	panic(fmt.Sprintf("don't know to print cell value %v", *c.value))
+}
 
 type Grid struct {
 	baseSize uint
@@ -49,20 +69,6 @@ func (g *Grid) cellAt(row uint, col uint) Cell {
 	rowBaseIndex := row * g.sideLength()
 	index := rowBaseIndex + col
 	return g.cells[index]
-}
-
-// TODO - this is currently the only way to set values in a grid; probably want other constructor(s), may not want this direct setter
-// TODO - may also want a method to clear a cell (set it to nil)
-func (g *Grid) SetCellToElement(row uint, col uint, element int) {
-	if element < 1 || element > g.maxElement() {
-		// TODO - better error handling?
-		panic("tried to set cell value outside the valid range")
-	}
-
-	// could inline these into a single line, but gofmt's arithmetic formatting makes the inlined version less clear
-	rowBaseIndex := row * g.sideLength()
-	index := rowBaseIndex + col
-	g.cells[index] = &element
 }
 
 func (g *Grid) rows() [][]Cell {
@@ -138,7 +144,7 @@ func (g *Grid) boxes() [][]Cell {
 
 func (g *Grid) IsCompletelyFilled() bool {
 	for _, cell := range g.cells {
-		if cell == nil {
+		if cell.isEmpty() {
 			return false
 		}
 	}
@@ -153,7 +159,7 @@ func isHouseValid(house []Cell, maxElement int) bool {
 	}
 
 	for _, cell := range house {
-		if cell == nil {
+		if cell.isEmpty() {
 			return false
 		}
 	}
@@ -161,7 +167,7 @@ func isHouseValid(house []Cell, maxElement int) bool {
 	// all cells in the house are non-nil
 
 	elementsInHouse := lo.Map(house, func(cell Cell, _ int) int {
-		return *cell
+		return *cell.value
 	})
 	slices.Sort(elementsInHouse)
 
@@ -204,17 +210,11 @@ func (g *Grid) IsValidSolution() bool {
 func (g *Grid) String() string {
 	var b strings.Builder
 
-	// TODO - generalize for different base sizes
 	for _, cell := range g.cells {
-		if cell == nil {
-			b.WriteString(".")
-			continue
-		} else if *cell >= 1 && *cell <= 9 {
-			b.WriteString(strconv.Itoa(*cell))
-		} else {
-			panic(fmt.Sprintf("don't know to print cell value %v", *cell))
-		}
+		b.WriteString(cell.String())
 	}
 
 	return b.String()
 }
+
+// func (g *Grid) allPeersOfCell()

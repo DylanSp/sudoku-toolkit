@@ -18,7 +18,7 @@ func SolveWithBacktracking(grid Grid) Grid {
 		return grid
 	}
 
-	puzzle := createPuzzle(grid)
+	puzzle := newPuzzleInProgress(grid)
 
 	panic("not yet implemented")
 
@@ -26,18 +26,18 @@ func SolveWithBacktracking(grid Grid) Grid {
 	return puzzle.knownValues
 }
 
-func createPuzzle(grid Grid) puzzleInProgress {
+func newPuzzleInProgress(grid Grid) puzzleInProgress {
 	puzzle := puzzleInProgress{
 		knownValues:    grid,
 		possibleValues: make([]utils.Set[int], len(grid.cells)),
 	}
 
 	for i, cell := range grid.cells {
-		if cell == nil {
+		if cell.isEmpty() {
 			puzzle.possibleValues[i] = allPossibilities(grid.baseSize)
 		} else {
 			puzzle.possibleValues[i] = utils.Set[int]{}
-			puzzle.possibleValues[i].Add(*cell)
+			puzzle.possibleValues[i].Add(*cell.value)
 		}
 	}
 
