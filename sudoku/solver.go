@@ -5,7 +5,7 @@ import (
 )
 
 type puzzleInProgress struct {
-	knownValues Grid
+	underlyingGrid Grid
 
 	// possibleValues[i]: possible values for the cell at knownValues.cells[i]
 	// invariant: len(possibleValues) == len(knownValues.cells)
@@ -25,8 +25,8 @@ func SolveWithBasicStrategies(grid Grid) Grid {
 		anyValuesEliminated := puzzle.eliminatePossibilitiesByRules()
 		anyValuesAssigned := puzzle.assignValuesForSinglePossibilities()
 
-		if puzzle.knownValues.IsValidSolution() {
-			return puzzle.knownValues
+		if puzzle.underlyingGrid.IsValidSolution() {
+			return puzzle.underlyingGrid
 		}
 
 		// no progress made and puzzle is still incomplete
@@ -49,7 +49,7 @@ func SolveWithBacktracking(grid Grid) Grid {
 
 func newPuzzleInProgress(grid Grid) puzzleInProgress {
 	puzzle := puzzleInProgress{
-		knownValues:    grid,
+		underlyingGrid: grid,
 		possibleValues: make([]utils.Set[int], len(grid.cells)),
 	}
 
@@ -66,11 +66,11 @@ func newPuzzleInProgress(grid Grid) puzzleInProgress {
 }
 
 // returns a set with all possible elements for a grid with the given base size
-func allPossibilities(baseSize uint) utils.Set[int] {
+func allPossibilities(baseSize int) utils.Set[int] {
 	possibilities := utils.Set[int]{}
 
 	maxElement := baseSize * baseSize
-	for i := 1; i <= int(maxElement); i++ {
+	for i := 1; i <= maxElement; i++ {
 		possibilities.Add(i)
 	}
 
@@ -82,7 +82,7 @@ func allPossibilities(baseSize uint) utils.Set[int] {
 func (puzzle *puzzleInProgress) assignValuesForSinglePossibilities() bool {
 	valueAssigned := false
 
-	for i, cell := range puzzle.knownValues.cells {
+	for i, cell := range puzzle.underlyingGrid.cells {
 		if cell.isEmpty() {
 			possibilitiesForCell := puzzle.possibleValues[i]
 			if possibilitiesForCell.Size() == 1 {
@@ -105,7 +105,7 @@ func (puzzle *puzzleInProgress) eliminatePossibilitiesByRules() bool {
 
 	// continue looping until we can no longer eliminate any possibilities
 	for {
-		for i, cell := range puzzle.knownValues.cells {
+		for i, cell := range puzzle.underlyingGrid.cells {
 			// skip cells that already have values
 			if !cell.isEmpty() {
 				continue

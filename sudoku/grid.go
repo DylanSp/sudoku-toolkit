@@ -11,7 +11,7 @@ import (
 )
 
 type Cell struct {
-	index          uint  // index of this cell in containingGrid.cells
+	index          int   // index of this cell in containingGrid.cells
 	containingGrid *Grid // pointer to act as a reference, avoiding infinite loops; should never be nil
 	value          *int  // nil == no value
 }
@@ -34,6 +34,7 @@ func (c *Cell) String() string {
 	panic(fmt.Sprintf("don't know to print cell value %v", *c.value))
 }
 
+// TODO - potential performance optimization - precalculate this for all cells when grid is created
 func (c *Cell) AllPeers() utils.Set[*Cell] {
 	peers := utils.Set[*Cell]{}
 
@@ -46,8 +47,8 @@ func (c *Cell) AllPeers() utils.Set[*Cell] {
 	return peers
 }
 
-func (c *Cell) allPeerIndexes() utils.Set[uint] {
-	allPeerIndexes := utils.Set[uint]{}
+func (c *Cell) allPeerIndexes() utils.Set[int] {
+	allPeerIndexes := utils.Set[int]{}
 
 	// we can't inline these into "range c.rowPeerIndexes().Elements()" because .Elements() has a pointer receiver,
 	// so we need an intermediate variable for each group of indexes
@@ -73,46 +74,46 @@ func (c *Cell) allPeerIndexes() utils.Set[uint] {
 	return allPeerIndexes
 }
 
-func (c *Cell) rowPeerIndexes() utils.Set[uint] {
-	peerIndexes := utils.Set[uint]{}
+func (c *Cell) rowPeerIndexes() utils.Set[int] {
+	peerIndexes := utils.Set[int]{}
 
 	for i := range c.containingGrid.cells {
 		// c isn't its own peer
-		if i == int(c.index) {
+		if i == c.index {
 			continue
 		}
 
 		// integer division, rounding down
-		if i/int(c.containingGrid.sideLength()) == int(c.index)/int(c.containingGrid.sideLength()) {
-			peerIndexes.Add(uint(i))
+		if i/c.containingGrid.sideLength() == c.index/c.containingGrid.sideLength() {
+			peerIndexes.Add(i)
 		}
 	}
 
 	return peerIndexes
 }
 
-func (c *Cell) colPeerIndexes() utils.Set[uint] {
-	peerIndexes := utils.Set[uint]{}
+func (c *Cell) colPeerIndexes() utils.Set[int] {
+	peerIndexes := utils.Set[int]{}
 
 	for i := range c.containingGrid.cells {
 		// c isn't its own peer
-		if i == int(c.index) {
+		if i == c.index {
 			continue
 		}
 
-		if i%int(c.containingGrid.sideLength()) == int(c.index)%int(c.containingGrid.sideLength()) {
-			peerIndexes.Add(uint(i))
+		if i%c.containingGrid.sideLength() == c.index%c.containingGrid.sideLength() {
+			peerIndexes.Add(i)
 		}
 	}
 
 	return peerIndexes
 }
 
-func (c *Cell) boxPeerIndexes() utils.Set[uint] {
+func (c *Cell) boxPeerIndexes() utils.Set[int] {
 	// unsure if there's an easy arithmetic way to find this
 	// instead, loop through all boxes in the grid, find which one contains c, then loop through its contents
 
-	peerIndexes := utils.Set[uint]{}
+	peerIndexes := utils.Set[int]{}
 
 	var boxContainingC []Cell
 
@@ -139,14 +140,14 @@ func (c *Cell) boxPeerIndexes() utils.Set[uint] {
 }
 
 type Grid struct {
-	baseSize uint
+	baseSize int
 
 	// flat slice of cells, row-by-row; may change representation later
 	// invariant: len(cells) == baseSize ^ 4
 	cells []Cell
 }
 
-func EmptyGrid(baseSize uint) Grid {
+func EmptyGrid(baseSize int) Grid {
 	grid := Grid{
 		baseSize: baseSize,
 	}
@@ -159,17 +160,17 @@ func EmptyGrid(baseSize uint) Grid {
 	return grid
 }
 
-func (g *Grid) sideLength() uint {
+func (g *Grid) sideLength() int {
 	return g.baseSize * g.baseSize
 }
 
 // each house in the grid must have all elements in the range from 1 to maxElement(), inclusive
 // this is the same calculation as sideLength(), but split into a separate method for clarity
 func (g *Grid) maxElement() int {
-	return int(g.baseSize * g.baseSize)
+	return g.baseSize * g.baseSize
 }
 
-func (g *Grid) cellAt(row uint, col uint) Cell {
+func (g *Grid) cellAt(row int, col int) Cell {
 	// could inline these into a single line, but gofmt's arithmetic formatting makes the inlined version less clear
 	rowBaseIndex := row * g.sideLength()
 	index := rowBaseIndex + col
@@ -179,10 +180,10 @@ func (g *Grid) cellAt(row uint, col uint) Cell {
 func (g *Grid) rows() [][]Cell {
 	rows := [][]Cell{}
 
-	for r := uint(0); r < g.sideLength(); r++ {
+	for r := 0; r < g.sideLength(); r++ {
 		row := []Cell{}
 		// rowBaseIndex := r * g.sideLength() // could inline this, but gofmt's arithmetic formatting makes the inlined version less clear
-		for c := uint(0); c < g.sideLength(); c++ {
+		for c := 0; c < g.sideLength(); c++ {
 			// idx := rowBaseIndex + c // could inline this, but gofmt's arithmetic formatting makes the inlined version less clear
 			// row[c] = g.cells[idx]
 			// row[c] = g.cellAt(r, c)
@@ -197,10 +198,10 @@ func (g *Grid) rows() [][]Cell {
 func (g *Grid) cols() [][]Cell {
 	cols := [][]Cell{}
 
-	for c := uint(0); c < g.sideLength(); c++ {
+	for c := 0; c < g.sideLength(); c++ {
 		col := []Cell{}
 
-		for r := uint(0); r < g.sideLength(); r++ {
+		for r := 0; r < g.sideLength(); r++ {
 			// idx := r*g.sideLength() + c
 			// col[r] = g.cells[idx]
 			// col[r] = g.cellAt(r, c)
@@ -226,15 +227,15 @@ func (g *Grid) boxes() [][]Cell {
 	// TODO - explain calculations
 	// TODO - is there a way to calculate each cell's row and column independently, then use g.cellAt(), to make this simpler?
 
-	for boxRow := uint(0); boxRow < g.baseSize; boxRow++ {
-		for boxCol := uint(0); boxCol < g.baseSize; boxCol++ {
+	for boxRow := 0; boxRow < g.baseSize; boxRow++ {
+		for boxCol := 0; boxCol < g.baseSize; boxCol++ {
 			box := []Cell{}
 
 			boxBaseIndex := (boxRow * g.baseSize * g.sideLength()) + (boxCol * g.baseSize)
 
 			// r and c are coordinates relative to the inside of the box
-			for r := uint(0); r < g.baseSize; r++ {
-				for c := uint(0); c < g.baseSize; c++ {
+			for r := 0; r < g.baseSize; r++ {
+				for c := 0; c < g.baseSize; c++ {
 					index := boxBaseIndex + r*g.sideLength() + c
 					box = append(box, g.cells[index])
 				}
