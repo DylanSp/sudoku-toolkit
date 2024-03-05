@@ -17,4 +17,14 @@ func TestSolveWithBasicStrategies(t *testing.T) {
 
 		assert.EqualValues(t, expectedSolution, computedSolution.String())
 	})
+
+	t.Run("Solving a 4x4 puzzle with only 4 givens to start with", func(t *testing.T) {
+		puzzle := "1......4..2..3.."
+		expectedSolution := "1432321441232341"
+
+		initialGrid := sudoku.ParseSingleGrid(puzzle)
+		computedSolution := sudoku.SolveWithBasicStrategies(initialGrid)
+
+		assert.EqualValues(t, expectedSolution, computedSolution.String())
+	})
 }

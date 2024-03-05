@@ -16,8 +16,8 @@ func main() {
 	}
 
 	// filename := filepath.Join(currentWorkingDir, "examples", "4x4", "filledGrid.txt")
-	filename := filepath.Join(currentWorkingDir, "examples", "4x4", "oneCellEmpty.txt")
-	// filename := filepath.Join(currentWorkingDir, "examples", "4x4", "simplePuzzle.txt")
+	// filename := filepath.Join(currentWorkingDir, "examples", "4x4", "oneCellEmpty.txt")
+	filename := filepath.Join(currentWorkingDir, "examples", "4x4", "simplePuzzle.txt")
 
 	grids, err := sudoku.LoadGridsFromFile(filename)
 	if err != nil {
