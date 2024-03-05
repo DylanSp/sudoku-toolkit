@@ -121,7 +121,7 @@ func (c *Cell) boxPeerIndexes() utils.Set[int] {
 
 	// should always find and assign a value for boxContainingC
 	for _, box := range c.containingGrid.boxes() {
-		if slices.ContainsFunc[[]*Cell, *Cell](box, func(cell *Cell) bool {
+		if slices.ContainsFunc(box, func(cell *Cell) bool {
 			return cell.index == c.index
 		}) {
 			boxContainingC = box
