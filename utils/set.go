@@ -54,12 +54,17 @@ func (s *Set[T]) Add(element T) {
 	s.underlying[element] = struct{}{}
 }
 
-func (s *Set[T]) Delete(element T) {
+// removes `element` from the set
+// returns true iff `element` was in the set beforehand, false if it wasn't
+func (s *Set[T]) Delete(element T) bool {
 	if s == nil {
-		return
+		return false
 	}
 
+	elemWasInSet := s.Has(element)
+
 	delete(s.underlying, element)
+	return elemWasInSet
 }
 
 // TODO - Clear() method if I need it, that removes all elements?

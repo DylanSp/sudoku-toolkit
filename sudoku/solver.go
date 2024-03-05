@@ -119,9 +119,11 @@ func (puzzle *puzzleInProgress) eliminatePossibilitiesByRules() bool {
 			// TODO - nested loop here - possible source of inefficiency?
 			for _, peer := range peers {
 				if peer != nil && !peer.isEmpty() {
-					possibilitiesForCell.Delete(*peer.value)
-					eliminationsMadeInLoop = true
-					eliminationsMadeInMethod = true
+					deletionMade := possibilitiesForCell.Delete(*peer.value)
+					if deletionMade {
+						eliminationsMadeInLoop = true
+						eliminationsMadeInMethod = true
+					}
 				}
 			}
 		}
