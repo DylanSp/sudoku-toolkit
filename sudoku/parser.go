@@ -16,13 +16,14 @@ func LoadGridsFromFile(filename string) ([]Grid, error) {
 	grids := []Grid{}
 
 	for _, line := range lines {
-		grid := parseSingleGrid(line)
+		grid := ParseSingleGrid(line)
 		grids = append(grids, grid)
 	}
 
 	return grids, nil
 }
 
+// TODO - move to utils folder? isn't specifically related to anything Sudoku-related
 func readFileLines(filename string) ([]string, error) {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -47,7 +48,9 @@ func readFileLines(filename string) ([]string, error) {
 	return lines, nil
 }
 
-func parseSingleGrid(str string) Grid {
+// public for testing purposes, and because a pure parsing function is useful to have
+// TODO - potentially move functions for loading from a file into a separate package?
+func ParseSingleGrid(str string) Grid {
 	switch len(str) {
 	case 16:
 		return parseBaseSize2Grid(str)

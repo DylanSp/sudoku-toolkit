@@ -28,6 +28,6 @@ func main() {
 
 	for _, grid := range grids {
 		solvedGrid := sudoku.SolveWithBasicStrategies(grid)
-		fmt.Println(solvedGrid)
+		fmt.Println(solvedGrid.String())
 	}
 }

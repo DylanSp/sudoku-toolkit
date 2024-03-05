@@ -81,7 +81,7 @@ func TestRoundTripFromFile(t *testing.T) {
 		lines, err := readFileLines(filename)
 		assert.NoError(t, err)
 		for _, line := range lines {
-			grid := parseSingleGrid(line)
+			grid := ParseSingleGrid(line)
 			assert.EqualValues(t, line, grid.String())
 		}
 	}

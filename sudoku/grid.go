@@ -324,5 +324,3 @@ func (g *Grid) String() string {
 
 	return b.String()
 }
-
-// func (g *Grid) allPeersOfCell()
