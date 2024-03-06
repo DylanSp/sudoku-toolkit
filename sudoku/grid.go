@@ -286,7 +286,7 @@ func isHouseValid(house []*Cell, maxElement int) bool {
 
 // checks if each row, column, and box has exactly one of each digit/element
 // only checks completely filled-out grids; if a grid has any empty cells, this returns false
-// does *not* check if a grid matches a specific puzzle (whether it matches the givens from the puzzle)
+// does *not* check if a grid matches a specific challenge (i.e. whether it matches the givens from the challenge)
 func (g *Grid) IsValidSolution() bool {
 	if !g.IsCompletelyFilled() {
 		return false

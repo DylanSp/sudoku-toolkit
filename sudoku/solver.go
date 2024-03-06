@@ -4,7 +4,10 @@ import (
 	"github.com/DylanSp/sudoku-toolkit/utils"
 )
 
-type puzzleInProgress struct {
+// TODO - not sure if I want to export the Puzzle type
+// It's currently exported because gopls won't allow renaming it to "puzzle" due to potentially shadowing parameter names
+// this might be a gopls bug - see https://github.com/golang/go/issues/66150
+type Puzzle struct {
 	underlyingGrid Grid
 
 	// possibleValues[i]: possible values for the cell at knownValues.cells[i]
@@ -18,7 +21,7 @@ func SolveWithBasicStrategies(grid Grid) Grid {
 		return grid
 	}
 
-	puzzle := newPuzzleInProgress(grid)
+	puzzle := newPuzzle(grid)
 
 	// apply basic rules and assignments as long as possible, until either the grid is completed or no progress can be made
 	for {
@@ -42,13 +45,13 @@ func SolveWithBacktracking(grid Grid) Grid {
 	// 	return grid
 	// }
 
-	// puzzle := newPuzzleInProgress(grid)
+	// puzzle := newPuzzle(grid)
 
 	panic("not yet implemented")
 }
 
-func newPuzzleInProgress(grid Grid) puzzleInProgress {
-	puzzle := puzzleInProgress{
+func newPuzzle(grid Grid) Puzzle {
+	puzzle := Puzzle{
 		underlyingGrid: grid,
 		possibleValues: make([]utils.Set[int], len(grid.cells)),
 	}
@@ -77,9 +80,9 @@ func allPossibilities(baseSize int) utils.Set[int] {
 	return possibilities
 }
 
-// go through all empty cells; if there's only one possibile value, set that cell's value to that possibility
+// go through all empty cells; if there's only one possible value, set that cell's value to that possibility
 // returns true iff at least one value was assigned
-func (puzzle *puzzleInProgress) assignValuesForSinglePossibilities() bool {
+func (puzzle *Puzzle) assignValuesForSinglePossibilities() bool {
 	valueAssigned := false
 
 	for i, cell := range puzzle.underlyingGrid.cells {
@@ -98,7 +101,7 @@ func (puzzle *puzzleInProgress) assignValuesForSinglePossibilities() bool {
 
 // applies the basic rules of Sudoku to eliminate all possibilities ruled out by currently known values
 // returns true iff at least one possibility was eliminated
-func (puzzle *puzzleInProgress) eliminatePossibilitiesByRules() bool {
+func (puzzle *Puzzle) eliminatePossibilitiesByRules() bool {
 	eliminationsMadeInMethod := false // did this method as a whole eliminate any possibilities?
 
 	eliminationsMadeInLoop := false // did a specific iteration of the loop eliminate any possibilities?
