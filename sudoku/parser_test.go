@@ -18,7 +18,7 @@ func TestLoadGridsFromFile(t *testing.T) {
 		exampleFiles := []string{
 			"filledGrid.txt",
 			"oneCellEmpty.txt",
-			"simplePuzzle.txt",
+			"simpleChallenge.txt",
 		}
 		for _, exampleFile := range exampleFiles {
 			filename := filepath.Join(examplesFolder, "4x4", exampleFile)
