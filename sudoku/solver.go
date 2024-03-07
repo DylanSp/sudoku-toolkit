@@ -73,7 +73,11 @@ func attemptBacktrackingSolve(puzzle Puzzle) (Puzzle, bool) {
 		for {
 			anyValuesEliminated := puzzle.eliminatePossibilitiesByRules()
 
-			// TODO - check here to see if there's an empty cell with no possibilities left, and return false if so?
+			if puzzle.hasReachedContradiction() {
+				// the puzzle can no longer be solved, some cell doesn't have any possibilities left
+				// therefore, we made an incorrect choice when searching - return false so we can backtrack
+				return puzzle, false
+			}
 
 			anyValuesAssigned := puzzle.assignValuesForSinglePossibilities()
 
@@ -108,8 +112,10 @@ func attemptBacktrackingSolve(puzzle Puzzle) (Puzzle, bool) {
 		// find the first (empty) cell with at least 2 possibilities,
 		// pick one possibility and set it, remembering other possibilities in case search fails,
 		// then recursively search
+		// TODO - use a heuristic to find a good search candidate?
+		// Norvig mentions searching from a cell with the smallest set of remaining values
 		searchCandidateIndex := findFirstSearchCandidate(puzzle)
-		possibilitiesForSearchCell := puzzle.possibleValues[searchCandidateIndex]
+		possibilitiesForSearchCell := &puzzle.possibleValues[searchCandidateIndex]
 
 		var valueChosenForSearch int
 		remainingPossibilities := []int{}
@@ -140,6 +146,17 @@ func attemptBacktrackingSolve(puzzle Puzzle) (Puzzle, bool) {
 		}
 		puzzle.underlyingGrid.cells[searchCandidateIndex].value = nil
 	}
+}
+
+// detects whether a search has reached a contradiction by making an incorrect assumption - at least one Cell doesn't have any possible valid values
+func (puzzle *Puzzle) hasReachedContradiction() bool {
+	for _, cellPossibilities := range puzzle.possibleValues {
+		if cellPossibilities.Size() == 0 {
+			return true
+		}
+	}
+
+	return false
 }
 
 func newPuzzle(grid Grid) Puzzle {

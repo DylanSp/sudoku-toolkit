@@ -17,7 +17,7 @@ func main() {
 
 	// filename := filepath.Join(currentWorkingDir, "examples", "4x4", "filledGrid.txt")
 	// filename := filepath.Join(currentWorkingDir, "examples", "4x4", "oneCellEmpty.txt")
-	// filename := filepath.Join(currentWorkingDir, "examples", "4x4", "simplePuzzle.txt")
+	// filename := filepath.Join(currentWorkingDir, "examples", "4x4", "simpleChallenge.txt")
 
 	filename := filepath.Join(currentWorkingDir, "examples", "9x9", "easy50.txt")
 	// filename := filepath.Join(currentWorkingDir, "examples", "9x9", "hard95.txt")
@@ -30,8 +30,12 @@ func main() {
 		panic(err)
 	}
 
-	for _, grid := range grids {
-		solvedGrid := sudoku.SolveWithBasicStrategies(grid)
-		fmt.Println(solvedGrid.String())
-	}
+	solvedGrid := sudoku.SolveWithBacktracking(grids[1])
+	fmt.Println(solvedGrid.String())
+
+	// for _, grid := range grids {
+	// 	// solvedGrid := sudoku.SolveWithBasicStrategies(grid)
+	// 	solvedGrid := sudoku.SolveWithBacktracking(grid)
+	// 	fmt.Println(solvedGrid.String())
+	// }
 }
