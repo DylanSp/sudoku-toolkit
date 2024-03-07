@@ -40,14 +40,106 @@ func SolveWithBasicStrategies(grid Grid) Grid {
 	}
 }
 
+// public entrypoint, validating input and wrapping attemptBacktrackingSolve()
 func SolveWithBacktracking(grid Grid) Grid {
-	// if grid.IsValidSolution() {
-	// 	return grid
-	// }
+	if grid.IsValidSolution() {
+		return grid
+	}
 
-	// puzzle := newPuzzle(grid)
+	puzzle := newPuzzle(grid)
 
-	panic("not yet implemented")
+	solution, ok := attemptBacktrackingSolve(puzzle)
+	if !ok {
+		// TODO - more graceful error handling
+		panic("Unable to solve puzzle with backtracking")
+	}
+
+	return solution.underlyingGrid
+}
+
+// attempts to solve a puzzle with recursive, backtracking search
+// if it finds a valid solution, will return (solution, true)
+// if it can't find a valid solution, will return (<unfinished puzzle>, false)
+// TODO - better name?
+func attemptBacktrackingSolve(puzzle Puzzle) (Puzzle, bool) {
+
+	// TODO - we need a way to detect when we've encountered an invalid search branch (no candidates remain for at least one empty cell)
+	// then return false in that case, so solver can backtract
+	// not sure where that should go in this control flow
+
+	for {
+
+		// apply basic rules and assignments as long as possible, until either the grid is completed or no progress can be made
+		for {
+			anyValuesEliminated := puzzle.eliminatePossibilitiesByRules()
+
+			// TODO - check here to see if there's an empty cell with no possibilities left, and return false if so?
+
+			anyValuesAssigned := puzzle.assignValuesForSinglePossibilities()
+
+			if puzzle.underlyingGrid.IsValidSolution() {
+				return puzzle, true
+			}
+
+			// no progress made and puzzle is still incomplete - break out of inner loop and start searching
+			if !anyValuesEliminated && !anyValuesAssigned {
+				break
+			}
+		}
+
+		// puzzle isn't complete, no progress can be made with simple strategies
+		// all remaining empty cells have at least 2 possibilities
+
+		// declared locally because this isn't useful outside this function
+		// takes a puzzle as a parameter instead of closing over the existing puzzle to avoid any weirdness with captured values in recursive calls
+		// TODO - move this into separate function?
+		findFirstSearchCandidate := func(puzzle Puzzle) int {
+			for i, cellPossibilities := range puzzle.possibleValues {
+				if cellPossibilities.Size() < 2 {
+					continue
+				}
+
+				return i
+			}
+
+			panic("couldn't find a cell with at least 2 possibilities, even though there should be one!")
+		}
+
+		// find the first (empty) cell with at least 2 possibilities,
+		// pick one possibility and set it, remembering other possibilities in case search fails,
+		// then recursively search
+		searchCandidateIndex := findFirstSearchCandidate(puzzle)
+		possibilitiesForSearchCell := puzzle.possibleValues[searchCandidateIndex]
+
+		var valueChosenForSearch int
+		remainingPossibilities := []int{}
+		for i, possibility := range possibilitiesForSearchCell.Elements() {
+			if i == 0 {
+				valueChosenForSearch = possibility
+			} else {
+				remainingPossibilities = append(remainingPossibilities, possibility)
+			}
+		}
+
+		possibilitiesForSearchCell.DeleteAll()
+		possibilitiesForSearchCell.Add(valueChosenForSearch)
+		puzzle.underlyingGrid.cells[searchCandidateIndex].value = &valueChosenForSearch
+
+		// TODO - do we need to do some sort of deep clone on `puzzle` before calling this,
+		// so if we need to backtrack, the original `puzzle` is still in the state it was before searching?
+		possibleSolution, ok := attemptBacktrackingSolve(puzzle)
+		if ok {
+			// valid solution found, return it
+			return possibleSolution, true
+		}
+
+		// search based on the chosen value didn't find a solution; eliminate it, then return to start of loop
+		possibilitiesForSearchCell.DeleteAll()
+		for _, possibility := range remainingPossibilities {
+			possibilitiesForSearchCell.Add(possibility)
+		}
+		puzzle.underlyingGrid.cells[searchCandidateIndex].value = nil
+	}
 }
 
 func newPuzzle(grid Grid) Puzzle {
