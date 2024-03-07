@@ -61,10 +61,17 @@ func (s *Set[T]) Delete(element T) bool {
 		return false
 	}
 
+	s.ensureInitialized()
+
 	elemWasInSet := s.Has(element)
 
 	delete(s.underlying, element)
 	return elemWasInSet
 }
 
-// TODO - Clear() method if I need it, that removes all elements?
+// removes all elements from the set
+func (s *Set[T]) DeleteAll() {
+	s.ensureInitialized()
+
+	s.underlying = make(map[T]struct{})
+}
