@@ -9,6 +9,15 @@ import (
 )
 
 func main() {
+	// apparently valid
+	// solution := "462831957795426183381795426173984265659312748248567319926178534834259671517643892"
+
+	// solution := "462813957795426183381795426173984265659231748248567319926178534834659271517342698"
+
+	// parsedSolution := sudoku.ParseSingleGrid(solution)
+	// fmt.Println(parsedSolution.IsValidSolution())
+	// return
+
 	currentWorkingDir, err := os.Getwd()
 	if err != nil {
 		fmt.Println(err)
@@ -30,7 +39,7 @@ func main() {
 		panic(err)
 	}
 
-	solvedGrid := sudoku.SolveWithBacktracking(grids[1])
+	solvedGrid := sudoku.SolveWithBacktracking(grids[2])
 	fmt.Println(solvedGrid.String())
 
 	// for _, grid := range grids {

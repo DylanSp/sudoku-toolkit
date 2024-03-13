@@ -324,3 +324,35 @@ func (g *Grid) String() string {
 
 	return b.String()
 }
+
+func (g *Grid) DeepClone() Grid {
+	newGrid := Grid{
+		baseSize: g.baseSize,
+	}
+
+	newCells := []*Cell{}
+
+	for _, cell := range g.cells {
+		newCell := Cell{
+			index:          cell.index,
+			containingGrid: &newGrid,
+		}
+
+		if cell.value == nil {
+			newCell.value = nil
+		} else {
+			value := *cell.value
+			newCell.value = &value
+		}
+
+		// fmt.Printf("Original cell: %p\n", cell)
+		// fmt.Printf("New cell: %p\n", &newCell)
+		utils.Assert(fmt.Sprintf("%p", cell) != fmt.Sprintf("%p", &newCell), "cell clone has the same memory address")
+
+		newCells = append(newCells, &newCell)
+	}
+
+	newGrid.cells = newCells
+
+	return newGrid
+}

@@ -1,5 +1,7 @@
 package utils
 
+import "maps"
+
 // Convenience wrapper around map[T]struct{} for more easily working with sets of values
 type Set[T comparable] struct {
 	underlying map[T]struct{}
@@ -44,6 +46,15 @@ func (s *Set[T]) Elements() []T {
 	}
 
 	return elements
+}
+
+// shallow clone
+func (s *Set[T]) Clone() Set[T] {
+	newSet := Set[T]{}
+
+	newSet.underlying = maps.Clone(s.underlying)
+
+	return newSet
 }
 
 // mutating methods

@@ -1,7 +1,12 @@
 package sudoku
 
 import (
+	"fmt"
+	"slices"
+	"strconv"
+
 	"github.com/DylanSp/sudoku-toolkit/utils"
+	"github.com/samber/lo"
 )
 
 // TODO - not sure if I want to export the Puzzle type
@@ -99,14 +104,58 @@ func attemptBacktrackingSolve(puzzle Puzzle) (Puzzle, bool) {
 		// TODO - move this into separate function?
 		findFirstSearchCandidate := func(puzzle Puzzle) int {
 			for i, cellPossibilities := range puzzle.possibleValues {
+				utils.Assertf(cellPossibilities.Size() > 0, "Cell %v has no possibilities remaining", i)
+
 				if cellPossibilities.Size() < 2 {
+					cellValue := puzzle.underlyingGrid.cells[i].value
+					utils.Assertf(cellValue != nil, "Cell %v with only 1 possibility should have a value assigned", i)
+
 					continue
 				}
 
 				return i
 			}
 
-			panic("couldn't find a cell with at least 2 possibilities, even though there should be one!")
+			fmt.Println(puzzle.underlyingGrid.String())
+
+			cellPtrs := []string{}
+			for i, cellPtr := range puzzle.underlyingGrid.cells {
+				// fmt.Printf("Cell %v: %p\n", i, cellPtr)
+				str := fmt.Sprintf("%p", cellPtr)
+				cellPtrs = append(cellPtrs, str)
+
+				peers := cellPtr.AllPeers()
+				peersSlice := peers.Elements()
+
+				peerIndexes := lo.Map(peersSlice, func(peer *Cell, _ int) string {
+					peersStr := ""
+					if peer == nil {
+						fmt.Println("Nil peer?!?!")
+						// peersStr = append(peersStr, ".")
+						peersStr += "."
+					} else {
+						peersStr += strconv.Itoa(peer.index)
+					}
+					return peersStr
+				})
+
+				fmt.Printf("Cell %v:\n", i)
+				fmt.Printf("Value: %v\n", *cellPtr.value)
+				fmt.Printf("Possibilities: %v\n", puzzle.possibleValues[i].Elements())
+				fmt.Printf("Indexes of peers: %v\n", peerIndexes)
+				fmt.Println()
+
+				utils.Assert(len(peerIndexes) == 20, "all cells should have exactly 20 peers")
+			}
+			slices.Sort(cellPtrs)
+			uniqdCellPtrs := slices.Compact(cellPtrs)
+			fmt.Println(len(uniqdCellPtrs))
+
+			utils.Assert(len(uniqdCellPtrs) == 81, "Some cell pointers were non-unique")
+
+			utils.Assert(!puzzle.underlyingGrid.IsCompletelyFilled() || puzzle.underlyingGrid.IsValidSolution(), "Invalid solution")
+
+			panic("couldn't find a cell with at least 2 possibilities, even though there should be one")
 		}
 
 		// find the first (empty) cell with at least 2 possibilities,
@@ -115,7 +164,7 @@ func attemptBacktrackingSolve(puzzle Puzzle) (Puzzle, bool) {
 		// TODO - use a heuristic to find a good search candidate?
 		// Norvig mentions searching from a cell with the smallest set of remaining values
 		searchCandidateIndex := findFirstSearchCandidate(puzzle)
-		possibilitiesForSearchCell := &puzzle.possibleValues[searchCandidateIndex]
+		possibilitiesForSearchCell := &puzzle.possibleValues[searchCandidateIndex] // take a reference so we can mutate this set
 
 		var valueChosenForSearch int
 		remainingPossibilities := []int{}
@@ -127,13 +176,14 @@ func attemptBacktrackingSolve(puzzle Puzzle) (Puzzle, bool) {
 			}
 		}
 
-		possibilitiesForSearchCell.DeleteAll()
-		possibilitiesForSearchCell.Add(valueChosenForSearch)
-		puzzle.underlyingGrid.cells[searchCandidateIndex].value = &valueChosenForSearch
+		// put a deep copy of Puzzle here and make changes on it
+		// otherwise, values assigned in a search branch will stay assigned even after backtracking, putting the puzzle in an inconsistent state
+		puzzleWithSearchBranch := puzzle.deepClone()
+		puzzleWithSearchBranch.possibleValues[searchCandidateIndex].DeleteAll()
+		puzzleWithSearchBranch.possibleValues[searchCandidateIndex].Add(valueChosenForSearch)
+		puzzleWithSearchBranch.underlyingGrid.cells[searchCandidateIndex].value = &valueChosenForSearch
 
-		// TODO - do we need to do some sort of deep clone on `puzzle` before calling this,
-		// so if we need to backtrack, the original `puzzle` is still in the state it was before searching?
-		possibleSolution, ok := attemptBacktrackingSolve(puzzle)
+		possibleSolution, ok := attemptBacktrackingSolve(puzzleWithSearchBranch)
 		if ok {
 			// valid solution found, return it
 			return possibleSolution, true
@@ -198,7 +248,16 @@ func (puzzle *Puzzle) assignValuesForSinglePossibilities() bool {
 		if cell.isEmpty() {
 			possibilitiesForCell := puzzle.possibleValues[i]
 			if possibilitiesForCell.Size() == 1 {
+				// if there's a single possibility, set that cell's value
+				// from the if statement's condition, possibilitiesForCell already is restricted to just that value
 				possibility := possibilitiesForCell.Elements()[0]
+
+				peers := cell.AllPeers()
+				for _, peer := range peers.Elements() {
+					peerValue := peer.value
+					utils.Assertf(peerValue == nil || *peerValue == possibility, "Peer %v has the same value", peer.index)
+				}
+
 				cell.value = &possibility
 				valueAssigned = true
 			}
@@ -214,6 +273,10 @@ func (puzzle *Puzzle) eliminatePossibilitiesByRules() bool {
 	eliminationsMadeInMethod := false // did this method as a whole eliminate any possibilities?
 
 	eliminationsMadeInLoop := false // did a specific iteration of the loop eliminate any possibilities?
+
+	// debugging
+	// deletionIndex := -1
+	// deletedValue := -1
 
 	// continue looping until we can no longer eliminate any possibilities
 	for {
@@ -235,6 +298,13 @@ func (puzzle *Puzzle) eliminatePossibilitiesByRules() bool {
 					if deletionMade {
 						eliminationsMadeInLoop = true
 						eliminationsMadeInMethod = true
+
+						// debugging
+						deletionIndex := i
+						deletedValue := *peer.value
+						fmt.Printf("Deleted %v from cell %v\n", deletedValue, deletionIndex)
+						fmt.Printf("Remaining possibilities: %v\n", puzzle.possibleValues[deletionIndex].Elements())
+						utils.Assertf(!puzzle.possibleValues[deletionIndex].Has(deletedValue), "Possibilities for cell %v still include %v", deletionIndex, deletedValue)
 					}
 				}
 			}
@@ -248,4 +318,31 @@ func (puzzle *Puzzle) eliminatePossibilitiesByRules() bool {
 
 	return eliminationsMadeInMethod
 
+}
+
+func (puzzle *Puzzle) deepClone() Puzzle {
+	newPuzzle := Puzzle{
+		underlyingGrid: puzzle.underlyingGrid.DeepClone(),
+	}
+	// fmt.Printf("Original puzzle: %p\n", &puzzle.underlyingGrid)
+	// fmt.Printf("New puzzle: %p\n", &newPuzzle.underlyingGrid)
+	utils.Assert(fmt.Sprintf("%p", &puzzle.underlyingGrid) != fmt.Sprintf("%p", &newPuzzle.underlyingGrid), "puzzle clone's grid has the same memory address")
+
+	newPossibleValues := []utils.Set[int]{}
+	for _, cellPossibilities := range puzzle.possibleValues {
+		// hypothesis - cloning the Set isn't working properly?
+		// doesn't seem to be the case
+		newCellPossibilities := cellPossibilities.Clone()
+
+		// newCellPossibilities := utils.Set[int]{}
+		// for _, possibility := range cellPossibilities.Elements() {
+		// 	newCellPossibilities.Add(possibility)
+		// }
+
+		newPossibleValues = append(newPossibleValues, newCellPossibilities)
+	}
+
+	newPuzzle.possibleValues = newPossibleValues
+
+	return newPuzzle
 }
