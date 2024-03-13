@@ -59,6 +59,8 @@ func SolveWithBacktracking(grid Grid) Grid {
 		panic("Unable to solve puzzle with backtracking")
 	}
 
+	utils.Assert(solution.underlyingGrid.IsValidSolution(), "Backtracking solver reached invalid solution")
+
 	return solution.underlyingGrid
 }
 
@@ -72,10 +74,24 @@ func attemptBacktrackingSolve(puzzle Puzzle) (Puzzle, bool) {
 	// then return false in that case, so solver can backtract
 	// not sure where that should go in this control flow
 
+	// justEnteredInnerLoop := false
+
 	for {
+		// justEnteredInnerLoop = true
 
 		// apply basic rules and assignments as long as possible, until either the grid is completed or no progress can be made
 		for {
+			if puzzle.underlyingGrid.IsCompletelyFilled() && !puzzle.underlyingGrid.IsValidSolution() {
+				// fmt.Printf("justEnteredInnerLoop: %v\n", justEnteredInnerLoop)
+
+				// search value creates an invalid state - backtrack
+				return puzzle, false
+
+				// TODO - does this work? why?
+				// when I was debugging this and had this check cause a panic, it triggered when the inner for-loop has been entered for the first time, so I *think* it's due to the search value causing an invalid solution
+				// but the possibility chosen as the search value should have been eliminated before it was chosen as a search value
+			}
+
 			utils.Assert(!puzzle.underlyingGrid.IsCompletelyFilled() || puzzle.underlyingGrid.IsValidSolution(), "Grid is invalid at start of inner for-loop")
 
 			anyValuesEliminated := puzzle.eliminatePossibilitiesByRules()
@@ -108,6 +124,8 @@ func attemptBacktrackingSolve(puzzle Puzzle) (Puzzle, bool) {
 			if !anyValuesEliminated && !anyValuesAssigned {
 				break
 			}
+
+			// justEnteredInnerLoop = false
 		}
 
 		utils.Assert(!puzzle.underlyingGrid.IsCompletelyFilled() || puzzle.underlyingGrid.IsValidSolution(), "Grid is invalid when beginning search")
@@ -203,6 +221,7 @@ func attemptBacktrackingSolve(puzzle Puzzle) (Puzzle, bool) {
 		puzzleWithSearchBranch.underlyingGrid.cells[searchCandidateIndex].value = &valueChosenForSearch
 
 		fmt.Println("Recursing")
+		fmt.Printf("Searching with value %v in cell %v\n", valueChosenForSearch, searchCandidateIndex)
 		possibleSolution, ok := attemptBacktrackingSolve(puzzleWithSearchBranch)
 		if ok {
 			fmt.Println("Returning")
@@ -264,6 +283,8 @@ func (puzzle *Puzzle) findFirstSearchCandidate() int {
 
 		return i
 	}
+
+	// Everything below this comment in this method is debugging for being unable to find a search candidate
 
 	fmt.Println(puzzle.underlyingGrid.String())
 
@@ -365,8 +386,8 @@ func (puzzle *Puzzle) assignValuesForSinglePossibilities() bool {
 				for _, peer := range peers.Elements() {
 					peerValue := peer.value
 					if peerValue != nil && *peerValue == possibility {
-						fmt.Printf("Current cell is %v, possibility is %v\n", i, possibility)
-						fmt.Printf("Peer %v has the same value %v\n", peer.index, *peerValue)
+						// fmt.Printf("Current cell is %v, possibility is %v\n", i, possibility)
+						// fmt.Printf("Peer %v has the same value %v\n", peer.index, *peerValue)
 						// panic("same value in peer")
 					}
 
