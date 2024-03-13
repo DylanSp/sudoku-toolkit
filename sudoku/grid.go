@@ -345,10 +345,6 @@ func (g *Grid) DeepClone() Grid {
 			newCell.value = &value
 		}
 
-		// fmt.Printf("Original cell: %p\n", cell)
-		// fmt.Printf("New cell: %p\n", &newCell)
-		utils.Assert(fmt.Sprintf("%p", cell) != fmt.Sprintf("%p", &newCell), "cell clone has the same memory address")
-
 		newCells = append(newCells, &newCell)
 	}
 
