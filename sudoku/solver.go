@@ -230,7 +230,7 @@ func (puzzle *Puzzle) assignValuesForSinglePossibilities() bool {
 			possibilitiesForCell := puzzle.possibleValues[i]
 			if possibilitiesForCell.Size() == 1 {
 				// if there's a single possibility, set that cell's value
-				// from the if statement's condition, possibilitiesForCell already is restricted to just that value
+				// don't need to edit possibilitiesForCell; from the if statement's condition, it's already in the desired state
 				possibility := possibilitiesForCell.Elements()[0]
 				cell.value = &possibility
 				valueAssigned = true
