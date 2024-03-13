@@ -10,6 +10,8 @@ func Assert(condition bool, failureMsg string) {
 
 func Assertf(condition bool, format string, args ...any) {
 	if !condition {
-		fmt.Printf(format, args...)
+		msg := fmt.Sprintf(format, args...)
+		fmt.Print(msg)
+		panic(msg)
 	}
 }

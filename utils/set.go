@@ -1,6 +1,8 @@
 package utils
 
-import "maps"
+import (
+	"maps"
+)
 
 // Convenience wrapper around map[T]struct{} for more easily working with sets of values
 type Set[T comparable] struct {
@@ -69,6 +71,7 @@ func (s *Set[T]) Add(element T) {
 // returns true iff `element` was in the set beforehand, false if it wasn't
 func (s *Set[T]) Delete(element T) bool {
 	if s == nil {
+		// fmt.Println("Delete() called on nil set")
 		return false
 	}
 

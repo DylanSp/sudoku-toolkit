@@ -39,12 +39,13 @@ func main() {
 		panic(err)
 	}
 
-	solvedGrid := sudoku.SolveWithBacktracking(grids[2])
-	fmt.Println(solvedGrid.String())
+	// solvedGrid := sudoku.SolveWithBacktracking(grids[2])
+	// fmt.Println(solvedGrid.String())
 
-	// for _, grid := range grids {
-	// 	// solvedGrid := sudoku.SolveWithBasicStrategies(grid)
-	// 	solvedGrid := sudoku.SolveWithBacktracking(grid)
-	// 	fmt.Println(solvedGrid.String())
-	// }
+	for i, grid := range grids {
+		fmt.Printf("Attempting to solve puzzle from line %v\n", i+1)
+		// solvedGrid := sudoku.SolveWithBasicStrategies(grid)
+		solvedGrid := sudoku.SolveWithBacktracking(grid)
+		fmt.Println(solvedGrid.String())
+	}
 }
