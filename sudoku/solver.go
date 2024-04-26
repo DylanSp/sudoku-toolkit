@@ -6,10 +6,7 @@ import (
 	"github.com/DylanSp/sudoku-toolkit/utils"
 )
 
-// TODO - not sure if I want to export the Puzzle type
-// It's currently exported because gopls won't allow renaming it to "puzzle" due to potentially shadowing parameter names
-// this might be a gopls bug - see https://github.com/golang/go/issues/66150
-type Puzzle struct {
+type puzzle struct {
 	underlyingGrid Grid
 
 	// possibleValues[i]: possible values for the cell at knownValues.cells[i]
@@ -65,7 +62,7 @@ func SolveWithBacktracking(grid Grid) Grid {
 // if it finds a valid solution, will return (solution, true)
 // if it can't find a valid solution, will return (<unfinished puzzle>, false)
 // TODO - better name?
-func attemptBacktrackingSolve(puzzle Puzzle) (Puzzle, bool) {
+func attemptBacktrackingSolve(puzzle puzzle) (puzzle, bool) {
 	// justEnteredInnerLoop := false
 
 	for {
@@ -163,7 +160,7 @@ func attemptBacktrackingSolve(puzzle Puzzle) (Puzzle, bool) {
 	}
 }
 
-func (p *Puzzle) findFirstSearchCandidate() int {
+func (p *puzzle) findFirstSearchCandidate() int {
 	for i, cellPossibilities := range p.possibleValues {
 		utils.Assertf(cellPossibilities.Size() > 0, "Cell %v has no possibilities remaining", i)
 
@@ -180,7 +177,7 @@ func (p *Puzzle) findFirstSearchCandidate() int {
 }
 
 // detects whether a search has reached a contradiction by making an incorrect assumption - at least one Cell doesn't have any possible valid values
-func (p *Puzzle) hasReachedContradiction() bool {
+func (p *puzzle) hasReachedContradiction() bool {
 	for _, cellPossibilities := range p.possibleValues {
 		if cellPossibilities.Size() == 0 {
 			return true
@@ -190,8 +187,8 @@ func (p *Puzzle) hasReachedContradiction() bool {
 	return false
 }
 
-func newPuzzle(grid Grid) Puzzle {
-	puzzle := Puzzle{
+func newPuzzle(grid Grid) puzzle {
+	puzzle := puzzle{
 		underlyingGrid: grid,
 		possibleValues: make([]utils.Set[int], len(grid.cells)),
 	}
@@ -222,7 +219,7 @@ func allPossibilities(baseSize int) utils.Set[int] {
 
 // go through all empty cells; if there's only one possible value, set that cell's value to that possibility
 // returns true iff at least one value was assigned
-func (p *Puzzle) assignValuesForSinglePossibilities() bool {
+func (p *puzzle) assignValuesForSinglePossibilities() bool {
 	valueAssigned := false
 
 	for i, cell := range p.underlyingGrid.cells {
@@ -243,7 +240,7 @@ func (p *Puzzle) assignValuesForSinglePossibilities() bool {
 
 // applies the basic rules of Sudoku to eliminate all possibilities ruled out by currently known values
 // returns true iff at least one possibility was eliminated
-func (p *Puzzle) eliminatePossibilitiesByRules() bool {
+func (p *puzzle) eliminatePossibilitiesByRules() bool {
 	eliminationsMadeInMethod := false // did this method as a whole eliminate any possibilities?
 
 	eliminationsMadeInLoop := false // did a specific iteration of the loop eliminate any possibilities?
@@ -286,8 +283,8 @@ func (p *Puzzle) eliminatePossibilitiesByRules() bool {
 
 }
 
-func (p *Puzzle) deepClone() Puzzle {
-	newPuzzle := Puzzle{
+func (p *puzzle) deepClone() puzzle {
+	newPuzzle := puzzle{
 		underlyingGrid: p.underlyingGrid.DeepClone(),
 	}
 	utils.Assert(fmt.Sprintf("%p", &p.underlyingGrid) != fmt.Sprintf("%p", &newPuzzle.underlyingGrid), "puzzle clone's grid has the same memory address")
