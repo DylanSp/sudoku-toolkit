@@ -163,12 +163,12 @@ func attemptBacktrackingSolve(puzzle Puzzle) (Puzzle, bool) {
 	}
 }
 
-func (puzzle *Puzzle) findFirstSearchCandidate() int {
-	for i, cellPossibilities := range puzzle.possibleValues {
+func (p *Puzzle) findFirstSearchCandidate() int {
+	for i, cellPossibilities := range p.possibleValues {
 		utils.Assertf(cellPossibilities.Size() > 0, "Cell %v has no possibilities remaining", i)
 
 		if cellPossibilities.Size() < 2 {
-			cellValue := puzzle.underlyingGrid.cells[i].value
+			cellValue := p.underlyingGrid.cells[i].value
 			utils.Assertf(cellValue != nil, "Cell %v with only 1 possibility should have a value assigned", i)
 
 			continue
@@ -180,8 +180,8 @@ func (puzzle *Puzzle) findFirstSearchCandidate() int {
 }
 
 // detects whether a search has reached a contradiction by making an incorrect assumption - at least one Cell doesn't have any possible valid values
-func (puzzle *Puzzle) hasReachedContradiction() bool {
-	for _, cellPossibilities := range puzzle.possibleValues {
+func (p *Puzzle) hasReachedContradiction() bool {
+	for _, cellPossibilities := range p.possibleValues {
 		if cellPossibilities.Size() == 0 {
 			return true
 		}
@@ -222,12 +222,12 @@ func allPossibilities(baseSize int) utils.Set[int] {
 
 // go through all empty cells; if there's only one possible value, set that cell's value to that possibility
 // returns true iff at least one value was assigned
-func (puzzle *Puzzle) assignValuesForSinglePossibilities() bool {
+func (p *Puzzle) assignValuesForSinglePossibilities() bool {
 	valueAssigned := false
 
-	for i, cell := range puzzle.underlyingGrid.cells {
+	for i, cell := range p.underlyingGrid.cells {
 		if cell.isEmpty() {
-			possibilitiesForCell := puzzle.possibleValues[i]
+			possibilitiesForCell := p.possibleValues[i]
 			if possibilitiesForCell.Size() == 1 {
 				// if there's a single possibility, set that cell's value
 				// don't need to edit possibilitiesForCell; from the if statement's condition, it's already in the desired state
@@ -243,24 +243,25 @@ func (puzzle *Puzzle) assignValuesForSinglePossibilities() bool {
 
 // applies the basic rules of Sudoku to eliminate all possibilities ruled out by currently known values
 // returns true iff at least one possibility was eliminated
-func (puzzle *Puzzle) eliminatePossibilitiesByRules() bool {
+func (p *Puzzle) eliminatePossibilitiesByRules() bool {
 	eliminationsMadeInMethod := false // did this method as a whole eliminate any possibilities?
 
 	eliminationsMadeInLoop := false // did a specific iteration of the loop eliminate any possibilities?
 
 	// continue looping until we can no longer eliminate any possibilities
 	for {
-		for i, cell := range puzzle.underlyingGrid.cells {
+		for i, cell := range p.underlyingGrid.cells {
 			// skip cells that already have values
 			if !cell.isEmpty() {
 				continue
 			}
 
-			possibilitiesForCell := &puzzle.possibleValues[i]
+			possibilitiesForCell := &p.possibleValues[i]
 
 			peerSet := cell.AllPeers()
 			peers := peerSet.Elements()
 
+			// TODO - this assertion fails when running tests (probably because 20 peers is specific to baseSize 3)
 			utils.Assertf(len(peers) == 20, "Cell %v does not have exactly 20 peers", i)
 
 			// TODO - nested loop here - possible source of inefficiency?
@@ -285,14 +286,14 @@ func (puzzle *Puzzle) eliminatePossibilitiesByRules() bool {
 
 }
 
-func (puzzle *Puzzle) deepClone() Puzzle {
+func (p *Puzzle) deepClone() Puzzle {
 	newPuzzle := Puzzle{
-		underlyingGrid: puzzle.underlyingGrid.DeepClone(),
+		underlyingGrid: p.underlyingGrid.DeepClone(),
 	}
-	utils.Assert(fmt.Sprintf("%p", &puzzle.underlyingGrid) != fmt.Sprintf("%p", &newPuzzle.underlyingGrid), "puzzle clone's grid has the same memory address")
+	utils.Assert(fmt.Sprintf("%p", &p.underlyingGrid) != fmt.Sprintf("%p", &newPuzzle.underlyingGrid), "puzzle clone's grid has the same memory address")
 
 	newPossibleValues := []utils.Set[int]{}
-	for _, cellPossibilities := range puzzle.possibleValues {
+	for _, cellPossibilities := range p.possibleValues {
 		newCellPossibilities := cellPossibilities.Clone()
 		newPossibleValues = append(newPossibleValues, newCellPossibilities)
 	}
